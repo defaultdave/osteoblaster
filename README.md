@@ -56,6 +56,7 @@ Reusable prompt patterns referenced during `/init`:
 | [model-selection](patterns/model-selection.md) | When to use haiku vs sonnet vs opus |
 | [persona-design](patterns/persona-design.md) | Crafting perspective-driven agents |
 | [feedback-loop](patterns/feedback-loop.md) | Run, validate, fix, repeat |
+| [knowledge-management](patterns/knowledge-management.md) | Capture, triage, organize, retrieve |
 
 ## Agent Types
 

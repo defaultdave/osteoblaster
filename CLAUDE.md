@@ -28,7 +28,8 @@ osteoblaster/
 │   ├── memory.md
 │   ├── feedback-loop.md
 │   ├── model-selection.md
-│   └── persona-design.md
+│   ├── persona-design.md
+│   └── knowledge-management.md
 └── reference/
     └── best-practices.md       # Snapshot of official guidelines
 ```
