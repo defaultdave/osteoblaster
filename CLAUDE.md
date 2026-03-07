@@ -21,7 +21,7 @@ osteoblaster/
 │   ├── dev-team/               # Full dev pipeline (4 agents)
 │   ├── solo-with-review/       # Simplest useful config
 │   ├── review-council/         # Adversarial multi-perspective review
-│   └── personal-assistant/     # Task/goal management
+│   └── personal-assistant/     # Task/goal management with onboarding & session persistence
 ├── patterns/                   # Reusable prompt patterns
 │   ├── pipeline.md
 │   ├── quality-gate.md
