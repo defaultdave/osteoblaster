@@ -36,6 +36,53 @@ project/
 
 Maximum 2 files. If you need more, the information probably belongs in CLAUDE.md or the codebase itself.
 
+## Continuous Memory (Autosave)
+
+Don't rely solely on session-end commands to persist context. Important information should be written the moment it's produced — like autosave, not manual save.
+
+### When to Write Immediately
+
+Instruct agents to write to memory as soon as any of these occur:
+
+- **A decision is made** — the rationale and outcome, before moving on
+- **Research produces a finding** — results worth keeping, captured at discovery
+- **A task completes or changes status** — marked done in the moment, not later
+- **The user shares a preference or correction** — saved before it scrolls away
+- **A blocker is hit or resolved** — what failed, what worked, why
+
+### How to Instruct Agents
+
+Add a memory discipline section to agent prompts:
+
+```markdown
+## Memory Discipline
+When any of these occur, write to memory/ immediately — do not wait for session end:
+- A decision is made or a question is resolved
+- Research produces a finding worth keeping
+- A task is completed or its status changes
+- The user shares a preference or correction
+- A blocker is encountered or resolved
+```
+
+### Session Commands Still Matter
+
+With continuous writes, session-start and session-end commands shift purpose:
+
+- **Check-in** — reads and synthesizes what's already persisted, surfaces priorities
+- **Wrap-up** — organizes and compresses what was captured, cleans up noise, writes a summary
+
+They become synthesis and hygiene steps, not the only persistence mechanism.
+
+### What to Write Continuously vs. at Session End
+
+| Continuous (write immediately) | Session end (wrap-up) |
+|---|---|
+| Decisions and their rationale | Session summary |
+| Findings and research results | Scratchpad cleanup |
+| Task status changes | Priority re-ranking |
+| User preferences / corrections | Stale item review |
+| Blockers hit or resolved | Weekly log entry |
+
 ## What to Store
 
 - Stable patterns confirmed across multiple sessions

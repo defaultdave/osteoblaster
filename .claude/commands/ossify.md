@@ -30,6 +30,20 @@ What kind of agent system?
 
 If they pick 1-3, pre-load sensible defaults from the matching example in this repo's `examples/` directory. Read the example to understand its structure, then adapt it to the target project. If custom, start fresh.
 
+### Step 1b: Personalization (Personal Assistant only)
+
+If the user chose **Personal assistant**, ask before continuing:
+
+1. **Name** — What should the assistant be called? (e.g., "Cleo", "Friday", "Jarvis", or just "assistant")
+2. **Personality** — What tone and style fits?
+   - A: **Warm & supportive** — encouraging, celebrates wins, gentle nudges
+   - B: **Crisp & efficient** — minimal chatter, straight to the point
+   - C: **Witty & casual** — conversational, light humor, informal
+   - D: **Professional & structured** — formal, organized, by-the-book
+   - E: **Custom** — describe your own
+
+Use the name and personality throughout the generated agent file — in the title, tone section, and any user-facing output.
+
 ### Step 2: Team Size
 
 How many agents?
