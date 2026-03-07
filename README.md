@@ -41,6 +41,8 @@ The core product is an interactive scaffolding command that generates a `.claude
 |---------|-------------|
 | [dev-team](examples/dev-team/) | Full pipeline: tech-pm, senior engineer, code reviewer, QA |
 | [solo-with-review](examples/solo-with-review/) | Simplest useful config: one agent with self-review |
+| [review-council](examples/review-council/) | Adversarial multi-perspective review with persona agents |
+| [personal-assistant](examples/personal-assistant/) | Task/goal management — non-dev use case with learned skills |
 
 ## Patterns
 
