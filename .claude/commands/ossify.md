@@ -1,11 +1,11 @@
 ---
-name: init
+name: ossify
 description: Interactive scaffolding command that generates a .claude/ directory for any project. Use when setting up a new agent system.
 disable-model-invocation: true
 argument-hint: [target-directory]
 ---
 
-# Osteoblaster Init
+# Osteoblaster Ossify
 
 Generate a complete `.claude/` agent system for a project. You are an expert at designing Claude Code agent architectures.
 

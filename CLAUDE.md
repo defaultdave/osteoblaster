@@ -4,7 +4,7 @@ Domain-agnostic scaffolding tool for building Claude Code agent systems.
 
 ## What This Is
 
-Osteoblaster generates native `.claude/` directories for any project. The core product is `/init` — an interactive scaffolding command that produces agents, commands, and patterns aligned to official Claude Code best practices.
+Osteoblaster generates native `.claude/` directories for any project. The core product is `/ossify` — an interactive scaffolding command that produces agents, commands, and patterns aligned to official Claude Code best practices.
 
 Zero dependencies. Zero custom runtime. Just markdown.
 
@@ -16,7 +16,7 @@ osteoblaster/
 ├── README.md
 ├── .claude/
 │   └── commands/
-│       └── init.md             # Core product: interactive scaffolding
+│       └── ossify.md           # Core product: interactive scaffolding
 ├── examples/                   # Reference implementations
 │   ├── dev-team/               # Full dev pipeline (4 agents)
 │   ├── solo-with-review/       # Simplest useful config
@@ -45,7 +45,7 @@ osteoblaster/
 1. **Native only** — `.claude/` system exclusively. No shell libraries, no Python, no YAML configs.
 2. **Concise prompts** — Trust Claude's intelligence. Only add what Claude doesn't already know.
 3. **Progressive disclosure** — SKILL.md is the overview. Details in supporting files, one level deep.
-4. **Examples, not templates** — Examples show what good looks like. `/init` generates fresh configs.
+4. **Examples, not templates** — Examples show what good looks like. `/ossify` generates fresh configs.
 5. **Domain-agnostic** — Dev teams are one use case. Works for any structured agent workflow.
 
 ## Code Standards
