@@ -29,6 +29,7 @@ A single persona agent with learned skills for personal task and goal management
 
 | Command | Purpose |
 |---------|---------|
+| `/assistant` | Main entry point — talk to your assistant for anything (renamed to match chosen name via `/ossify`) |
 | `/check-in` | Session start — load context, review priorities, suggest focus |
 | `/wrap-up` | End session — save to session log, update state, note pending items |
 | `/update` | Mid-session checkpoint — lightweight save without ending |
@@ -43,6 +44,7 @@ A single persona agent with learned skills for personal task and goal management
 ├── agents/
 │   └── assistant.md
 ├── commands/
+│   ├── assistant.md    # Main entry point (renamed via /ossify)
 │   ├── check-in.md
 │   ├── wrap-up.md
 │   ├── update.md

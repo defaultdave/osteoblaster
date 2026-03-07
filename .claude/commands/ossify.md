@@ -135,8 +135,9 @@ Now generate all files into the target project's `.claude/` directory:
 1. Read the target project to understand its tech stack, existing structure, and conventions
 2. Generate agent files as `.claude/agents/{name}.md`
 3. Generate orchestrator command as `.claude/commands/{name}.md` (if pipeline chosen)
-4. Generate memory files (if chosen)
-5. Generate a project CLAUDE.md if one doesn't exist, or suggest additions to an existing one
+4. **For personal assistants**: Generate a main invocation command as `.claude/commands/{assistant-name}.md` — this is the primary entry point (e.g., `/cleo`, `/friday`). Also generate sub-commands (`check-in`, `wrap-up`, `update`, `goals`, `teach`). The main command should route to sub-commands when appropriate and handle everything else directly.
+5. Generate memory files (if chosen)
+6. Generate a project CLAUDE.md if one doesn't exist, or suggest additions to an existing one
 
 ## Validation Checklist
 

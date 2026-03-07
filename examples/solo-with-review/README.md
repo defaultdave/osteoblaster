@@ -14,12 +14,18 @@ The simplest useful agent config: one developer agent that implements and self-r
 |-------|-------|------|
 | developer | sonnet | Implements, then reviews own work before finishing |
 
+## Commands
+
+| Command | Purpose |
+|---------|---------|
+| `/dev` | Main entry point — implement a feature or fix with self-review |
+
 ## Files
 
 ```
 .claude/
-└── agents/
-    └── developer.md
+├── agents/
+│   └── developer.md
+└── commands/
+    └── dev.md
 ```
-
-No orchestrator command needed — just invoke the developer agent directly.
