@@ -160,11 +160,22 @@ For any pipeline-based system, add these sections to the project's CLAUDE.md:
 
 Every task flows through these stages. {List which stages are mandatory}.
 
-{Stage diagram, e.g.: [1. Triage] → 2. Implement → Quality Gate → 3. Review → 4. QA → Done}
+                                       ┌→ 3. Review ─┐
+{e.g.: [1. Triage] → 2. Implement → Quality Gate → Push/PR ─┤              ├→ Done}
+                                       └→ 4. QA ────┘
 
 - {For each stage: name, agent, required/optional, what it produces}
+- Review and QA run in parallel — no dependency between them
 
 A task is not complete until {completion criteria — e.g., "both a review verdict and a QA result exist"}.
+
+### GitHub Trail
+
+The pipeline must leave a visible audit trail:
+- PRs created and linked to issues
+- Review and QA verdicts posted as PR comments
+- Acceptance criteria checkboxes checked on issues
+- Issues closed on completion
 
 ### Workflow Rules
 
@@ -172,9 +183,10 @@ A task is not complete until {completion criteria — e.g., "both a review verdi
    may batch implementation, then run one review + QA pass over the combined changes.
    But {mandatory stages} must run at least once before the task is declared done.
 2. **Feedback loops.** If {verification stage} returns {failure verdict}, route specific
-   feedback back to {implementation stage}. Max 3 cycles before escalating to the user.
+   feedback back to {implementation stage}. Max 3 cycles. On retry, only re-run the
+   failing stage(s), not both.
 3. **The output proves the pipeline ran.** Every completion must report: {list of required
-   fields that can only be filled by running the mandatory stages}.
+   fields that can only be filled by running the mandatory stages}, plus PR URL.
 ```
 
 The orchestrator command should then reference CLAUDE.md: "Run the pipeline defined in CLAUDE.md for this task."
@@ -217,5 +229,5 @@ memory/
 
 For patterns and examples, read from this repo:
 - `examples/` — reference implementations
-- `patterns/` — reusable prompt patterns
+- `patterns/` — reusable prompt patterns (including `evidence.md` for screenshot/proof-of-work patterns)
 - `reference/best-practices.md` — official guidelines snapshot

@@ -20,6 +20,20 @@ Each agent receives:
 
 The orchestrator checks quality gates between stages.
 
+## Linear with Parallel Tail
+
+When verification stages are independent of each other, run them in parallel:
+
+```
+                          ┌→ review ─┐
+implement → quality gate ─┤          ├→ done
+                          └→ QA ─────┘
+```
+
+Review reads the diff and checks code quality. QA runs tests and verifies requirements. Neither needs the other's output. Running them in parallel cuts the back half of the pipeline roughly in half with zero coordination risk.
+
+On failure, only re-run the failing stage — not both.
+
 ## Parallel Then Merge
 
 Run independent work simultaneously, then synthesize:
@@ -64,6 +78,16 @@ The command file should reference CLAUDE.md: "Run the pipeline defined in CLAUDE
 
 This split was proven necessary in practice: a dev team orchestrator skipped review and QA on all phases despite the command file listing them as routing rules.
 
+## GitHub Trail
+
+The pipeline should leave a visible audit trail:
+- PRs created and linked to issues
+- Review and QA verdicts posted as PR comments (`gh pr comment`)
+- Acceptance criteria checkboxes checked on issues (`gh issue edit`)
+- Issues closed on completion (`gh issue close`)
+
+This makes pipeline execution verifiable by anyone looking at the repo.
+
 ## Example: CLAUDE.md Pipeline Section
 
 ```markdown
@@ -71,15 +95,17 @@ This split was proven necessary in practice: a dev team orchestrator skipped rev
 
 Every task flows through these stages. Stages 2-4 are mandatory.
 
-[1. Triage] → 2. Implement → Quality Gate → 3. Review → 4. QA → Done
+                                       ┌→ 3. Review ─┐
+[1. Triage] → 2. Implement → Quality Gate → Push/PR ─┤              ├→ Done
+                                       └→ 4. QA ────┘
 
 A task is not complete until both a review verdict and a QA result exist.
 
 ### Workflow Rules
 
 1. Batching is allowed, skipping is not.
-2. Feedback loops: max 3 cycles before escalating.
-3. The output proves the pipeline ran: changes, gate status, review verdict, QA result.
+2. Feedback loops: max 3 cycles. On retry, only re-run the failing stage(s).
+3. The output proves the pipeline ran: changes, gate status, review verdict, QA result, PR URL.
 ```
 
 ## Example: Command File Execution
@@ -99,12 +125,13 @@ If requirements are clear → skip to Implement. If ambiguous → route to triag
 ### 2. Implement
 Spawn agent(s). Run quality gates. If fail, send output back. Max 3 retries.
 
-### 3. Review (do not skip)
-Spawn review agent with task + changes. Route REQUEST_CHANGES back to implement.
+### 3. Push & PR
+Commit, push, create PR linked to issue. Check acceptance criteria checkboxes.
 
-### 4. QA (do not skip)
-Spawn QA agent with requirements + verdict. Route FAIL back to implement.
+### 4. Review + QA (parallel, do not skip)
+Spawn review and QA agents simultaneously. Both post verdicts as PR comments.
+If either fails, route feedback to implement and re-run only the failing stage.
 
 ### 5. Complete
-Report: task, changes, gate status, review verdict, QA result.
+Check remaining checkboxes, close issue. Report: task, changes, gate status, review verdict, QA result, PR URL.
 ```

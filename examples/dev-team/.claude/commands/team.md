@@ -1,48 +1,87 @@
 ---
 name: team
-description: Orchestrates the dev team pipeline for an issue or task. Routes work dynamically between tech-pm, senior, review, and qa agents.
+description: Orchestrates the dev team pipeline for an issue or task. Routes work through tech-pm, senior, review, and qa agents.
 disable-model-invocation: true
 argument-hint: [issue-or-task-description]
 ---
-
 # Dev Team Orchestrator
 
-Run the pipeline defined in CLAUDE.md for this task. Every stage is documented there — refer to it throughout.
+Run the pipeline defined in CLAUDE.md for this task.
 
-Task: $ARGUMENTS
+## First-Run Setup
+
+On the **first `/team` invocation** in a project, check the project's CLAUDE.md for a `## Tooling` section. If it doesn't exist, detect the project type and ask the user:
+
+> This project appears to be a {Next.js / React / Node} app. The following optional tools can enhance the pipeline:
+>
+> 1. **Playwright MCP** — QA can interact with the running app (click, fill forms, navigate)
+> 2. **Next.js DevTools MCP** — Senior gets real-time build/runtime errors *(Next.js only)*
+> 3. **Figma MCP** — Agents can read design specs for implementation *(if using Figma)*
+> 4. **Lighthouse** — QA reports performance/a11y scores *(web apps)*
+> 5. **Database MCP** — QA verifies data persistence *(if using Prisma/Drizzle/Postgres)*
+>
+> Which would you like to set up? (comma-separated numbers, or `skip` to skip all)
+
+After the user responds, record the decision in the project's CLAUDE.md under `## Tooling`:
+
+```markdown
+## Tooling
+
+| Tool | Status | Notes |
+|------|--------|-------|
+| Playwright MCP | ✅ enabled | QA uses for browser testing |
+| Next.js DevTools MCP | ✅ enabled | Senior uses for error detection |
+| Figma MCP | ⏭ skipped | No Figma workflow |
+| Lighthouse | ⏭ skipped | — |
+| Database MCP | ✅ enabled | Prisma + PostgreSQL |
+```
+
+This table is checked by QA and senior agents to know what tools are available. If a tool is marked `enabled`, set it up (install dependencies, configure `.claude/settings.json` MCP entries). If `skipped`, agents don't attempt to use it.
+
+Skip this setup check if the `## Tooling` section already exists in CLAUDE.md.
 
 ## Execution
 
-### 1. Assess
-Read the task. If requirements are clear → skip to Stage 2. If ambiguous or large → route to `tech-pm` for a plan first.
+1. **Assess** — Read the task. If requirements are clear, skip to Stage 2. If ambiguous or large, spawn `tech-pm` agent to refine and break down.
 
-### 2. Implement
-Spawn `senior` agent(s). For independent work, parallelize across multiple agents.
+2. **Implement** — Spawn `senior` agent with the task (or refined sub-tasks from tech-pm). After implementation, run quality gates:
+   ```
+   npm run build && eslint . && tsc --noEmit && npm test
+   ```
+   If gates fail, send specific errors back to senior. Max 3 retries before escalating to user.
 
-When implementation is complete, run the quality gates listed in CLAUDE.md. If any gate fails, send the full error output back to `senior`. Max 3 retries before escalating.
+3. **Push & PR** — After quality gates pass:
+   - Commit changes with a descriptive message referencing the issue (e.g., `feat: add todo CRUD operations (closes #2)`)
+   - Push the branch and create a PR linked to the issue (use `gh pr create --title "..." --body "Closes #N"`)
+   - Check acceptance criteria checkboxes on the issue as they are met (use `gh issue edit` to update the body)
 
-### 3. Review (do not skip)
-Spawn `review` agent. Provide:
-- The original task description
-- Summary of changes and files modified
-- Instruction to read the diff and produce a verdict (APPROVE / APPROVE_WITH_NITS / REQUEST_CHANGES)
+4. **Review + QA (mandatory, parallel)** — Spawn `review` and `qa` agents **simultaneously** using parallel Agent tool calls. They have no dependency on each other. Provide each with:
+   - **Review agent:** original task description, summary of changes, full diff, PR number/URL. MUST post verdict as a PR comment (`gh pr comment`).
+   - **QA agent:** original requirements, PR number, instruction to run `npm test`. MUST post result as a PR comment (`gh pr comment`).
 
-If REQUEST_CHANGES: route feedback to `senior` → re-run gates → re-review. Max 3 cycles.
+   After both complete, evaluate results:
+   - If both APPROVE + PASS → proceed to Complete.
+   - If either returns REQUEST_CHANGES or FAIL → route specific feedback back to senior, then re-run **only the failing stage(s)** in the next cycle. Max 3 cycles before escalating to user.
 
-### 4. QA (do not skip)
-Spawn `qa` agent. Provide:
-- The original task requirements
-- The review verdict
-- Instruction to run tests and verify requirements are met
+5. **Complete** — After APPROVE + PASS:
+   - Check remaining acceptance criteria checkboxes (review, QA)
+   - Close the issue (use `gh issue close`)
+   - Post a completion comment on the PR with the full report and agent metadata footer
+   - Report: task summary, changes made, quality gates status, review verdict, QA result, PR URL
 
-If FAIL: route failure report to `senior` → fix → gates → re-review → re-QA. Max 3 total cycles.
+## Agent Metadata
 
-### 5. Complete
-Write learnings to memory. Report:
+Track metrics from every agent invocation. The Agent tool returns `total_tokens`, `tool_uses`, and `duration_ms` — capture these for every agent spawned during the pipeline.
 
-- **Task:** what was requested
-- **Changes:** files modified/created
-- **Quality gates:** pass/fail
-- **Review verdict:** (from review agent)
-- **QA result:** (from qa agent)
-- **Issues:** problems encountered and resolutions
+Include an agent metadata footer on the PR completion comment (and optionally on the PR description). This proves which agents ran, on which models, and at what cost:
+
+```markdown
+---
+<sub>🤖 **senior** (sonnet) | ⏱ Xs | 🔤 N tokens | 🔧 N tool uses</sub>
+<sub>🤖 **review** (haiku) | ⏱ Xs | 🔤 N tokens | 🔧 N tool uses</sub>
+<sub>🤖 **qa** (sonnet) | ⏱ Xs | 🔤 N tokens | 🔧 N tool uses</sub>
+
+Generated by `/team` · [pipeline source](../dev-team-v2/.claude/commands/team.md)
+```
+
+If tech-pm was invoked, include it. If multiple senior cycles ran (due to review feedback), show each cycle. This footer is a pipeline adherence signal — it proves named agents were called, not a generic Claude instance.

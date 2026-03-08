@@ -25,6 +25,7 @@ osteoblaster/
 ├── patterns/                   # Reusable prompt patterns
 │   ├── pipeline.md
 │   ├── quality-gate.md
+│   ├── evidence.md
 │   ├── memory.md
 │   ├── feedback-loop.md
 │   ├── model-selection.md
