@@ -1,52 +1,48 @@
 ---
 name: team
-description: Orchestrates the dev team pipeline for an issue or task. Runs triage -> implement -> review -> QA with quality gates between stages.
+description: Orchestrates the dev team pipeline for an issue or task. Routes work dynamically between tech-pm, senior, review, and qa agents.
 disable-model-invocation: true
 argument-hint: [issue-or-task-description]
 ---
 
-# Dev Team Pipeline
+# Dev Team Orchestrator
 
-Run the full development pipeline for: $ARGUMENTS
+Run the pipeline defined in CLAUDE.md for this task. Every stage is documented there — refer to it throughout.
 
-## Pipeline
+Task: $ARGUMENTS
 
-Execute each stage sequentially. Stop the pipeline if a quality gate fails.
+## Execution
 
-### Stage 1: Triage (tech-pm)
+### 1. Assess
+Read the task. If requirements are clear → skip to Stage 2. If ambiguous or large → route to `tech-pm` for a plan first.
 
-Delegate to the `tech-pm` agent:
-- Refine the requirements
-- Break into concrete steps if needed
-- Output: clear implementation plan
+### 2. Implement
+Spawn `senior` agent(s). For independent work, parallelize across multiple agents.
 
-### Stage 2: Implement (senior)
+When implementation is complete, run the quality gates listed in CLAUDE.md. If any gate fails, send the full error output back to `senior`. Max 3 retries before escalating.
 
-Delegate to the `senior` agent:
-- Implement the plan from Stage 1
-- Self-verify before handing off
+### 3. Review (do not skip)
+Spawn `review` agent. Provide:
+- The original task description
+- Summary of changes and files modified
+- Instruction to read the diff and produce a verdict (APPROVE / APPROVE_WITH_NITS / REQUEST_CHANGES)
 
-**Quality Gate:** Run build + lint + tests. If any fail, send back to senior with the failure output.
+If REQUEST_CHANGES: route feedback to `senior` → re-run gates → re-review. Max 3 cycles.
 
-### Stage 3: Review (review)
+### 4. QA (do not skip)
+Spawn `qa` agent. Provide:
+- The original task requirements
+- The review verdict
+- Instruction to run tests and verify requirements are met
 
-Delegate to the `review` agent:
-- Review the diff from Stage 2
-- If REQUEST_CHANGES: send back to senior with the required changes, then re-review
-- If APPROVE or APPROVE_WITH_NITS: proceed
+If FAIL: route failure report to `senior` → fix → gates → re-review → re-QA. Max 3 total cycles.
 
-### Stage 4: Verify (qa)
+### 5. Complete
+Write learnings to memory. Report:
 
-Delegate to the `qa` agent:
-- Run full test suite
-- Verify requirements are met
-- If FAIL: send back to senior with the failure report, then re-run stages 2-4
-
-## Output
-
-Summarize what was done:
-- Task description
-- Changes made (files modified)
-- Review verdict
-- QA result
-- Any issues encountered and how they were resolved
+- **Task:** what was requested
+- **Changes:** files modified/created
+- **Quality gates:** pass/fail
+- **Review verdict:** (from review agent)
+- **QA result:** (from qa agent)
+- **Issues:** problems encountered and resolutions

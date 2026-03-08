@@ -79,6 +79,12 @@ model: {haiku or sonnet}
 {What the agent produces}
 ```
 
+**Testing responsibilities** — When generating a dev team or any pipeline with implementation + review + QA agents:
+
+- **Implementation agents** (senior, developer, etc.) must include a Testing section in their prompt stating that tests are part of the deliverable, not a follow-up task. New features need tests, bug fixes need regression tests, refactors need behavior-preservation tests. Coverage should match the scope of the ask.
+- **Review agents** must check test coverage as part of their evaluation. Missing or inadequate tests are a REQUEST_CHANGES reason.
+- **QA agents** must assess test sufficiency after tests pass. If coverage is insufficient for what was built, they FAIL with a `missingCoverage` list — senior writes the tests, not QA.
+
 Use this format for persona agents:
 ```yaml
 ---
@@ -137,7 +143,43 @@ Now generate all files into the target project's `.claude/` directory:
 3. Generate orchestrator command as `.claude/commands/{name}.md` (if pipeline chosen)
 4. **For personal assistants**: Generate a main invocation command as `.claude/commands/{assistant-name}.md` — this is the primary entry point (e.g., `/cleo`, `/friday`). Also generate sub-commands (`check-in`, `wrap-up`, `update`, `goals`, `teach`). The main command should route to sub-commands when appropriate and handle everything else directly.
 5. Generate memory files (if chosen)
-6. Generate a project CLAUDE.md if one doesn't exist, or suggest additions to an existing one
+6. **Generate or update the project's CLAUDE.md** with pipeline rules (see below)
+
+#### CLAUDE.md Pipeline Rules (critical)
+
+When a pipeline is chosen (Steps 4 + 5), the project's CLAUDE.md MUST include pipeline enforcement rules. These rules are always loaded into context, making them harder for the orchestrator to skip than rules in the command file alone.
+
+**Why this matters:** The orchestrator command is only loaded when invoked. CLAUDE.md is loaded into every conversation. Without pipeline rules in CLAUDE.md, the orchestrator will optimize for speed and skip review/QA stages. This was proven in practice — a team-v2 test run skipped review and QA on all 5 phases despite the team.md command listing them.
+
+**The split:** CLAUDE.md defines *what stages are mandatory and what proves completion*. The command file defines *how to execute each stage*.
+
+For any pipeline-based system, add these sections to the project's CLAUDE.md:
+
+```markdown
+### Pipeline
+
+Every task flows through these stages. {List which stages are mandatory}.
+
+{Stage diagram, e.g.: [1. Triage] → 2. Implement → Quality Gate → 3. Review → 4. QA → Done}
+
+- {For each stage: name, agent, required/optional, what it produces}
+
+A task is not complete until {completion criteria — e.g., "both a review verdict and a QA result exist"}.
+
+### Workflow Rules
+
+1. **Batching is allowed, skipping is not.** For large multi-part tasks, the orchestrator
+   may batch implementation, then run one review + QA pass over the combined changes.
+   But {mandatory stages} must run at least once before the task is declared done.
+2. **Feedback loops.** If {verification stage} returns {failure verdict}, route specific
+   feedback back to {implementation stage}. Max 3 cycles before escalating to the user.
+3. **The output proves the pipeline ran.** Every completion must report: {list of required
+   fields that can only be filled by running the mandatory stages}.
+```
+
+The orchestrator command should then reference CLAUDE.md: "Run the pipeline defined in CLAUDE.md for this task."
+
+Read the dev-team example at `examples/dev-team/README.md` for the full pattern, including the CLAUDE.md template and the reasoning behind the split.
 
 ## Validation Checklist
 
