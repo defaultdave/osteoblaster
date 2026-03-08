@@ -16,7 +16,8 @@ osteoblaster/
 ├── README.md
 ├── .claude/
 │   └── commands/
-│       └── ossify.md           # Core product: interactive scaffolding
+│       ├── ossify.md           # Core product: interactive scaffolding
+│       └── scaffold-test.md    # QA: verify scaffolding output against live instance
 ├── examples/                   # Reference implementations
 │   ├── dev-team/               # Full dev pipeline (4 agents)
 │   ├── solo-with-review/       # Simplest useful config
@@ -31,6 +32,9 @@ osteoblaster/
 │   ├── model-selection.md
 │   ├── persona-design.md
 │   └── knowledge-management.md
+├── tests/                      # Scaffold test fixtures
+│   └── fixtures/
+│       └── dev-team.md         # Golden spec for dev-team output
 └── reference/
     └── best-practices.md       # Snapshot of official guidelines
 ```
