@@ -31,7 +31,9 @@ osteoblaster/
 │   ├── feedback-loop.md
 │   ├── model-selection.md
 │   ├── persona-design.md
-│   └── knowledge-management.md
+│   ├── knowledge-management.md
+│   ├── hooks.md
+│   └── rules.md
 ├── tests/                      # Scaffold test fixtures
 │   └── fixtures/
 │       └── dev-team.md         # Golden spec for dev-team output

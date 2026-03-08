@@ -92,6 +92,8 @@ Reusable prompt patterns referenced during `/ossify`:
 | [persona-design](patterns/persona-design.md)             | Crafting perspective-driven agents     |
 | [feedback-loop](patterns/feedback-loop.md)               | Run, validate, fix, repeat             |
 | [knowledge-management](patterns/knowledge-management.md) | Capture, triage, organize, retrieve    |
+| [hooks](patterns/hooks.md)                               | Deterministic guardrails via shell hooks |
+| [rules](patterns/rules.md)                               | Path-scoped contextual guidance         |
 
 ## Agent Types
 

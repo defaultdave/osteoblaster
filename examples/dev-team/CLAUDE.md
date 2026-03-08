@@ -57,3 +57,19 @@ On first `/team` run in a project, the orchestrator checks for a `## Tooling` se
 | Database MCP | DB-backed apps | QA verifies data persistence, migrations |
 
 The decision is recorded in the project's CLAUDE.md. QA and senior agents read this table to know what tools are available. Agents adapt their process based on what's enabled — they don't attempt to use skipped tools.
+
+## Compaction
+
+When context is compacted, preserve:
+- Current issue number and acceptance criteria
+- Current pipeline stage (implement/review/QA) and what's been completed
+- Quality gate results (pass/fail for each gate)
+- File paths of changes made
+- Any blocking issues or errors being debugged
+- PR number if created
+
+Discard:
+- Full file contents (can be re-read)
+- Verbose test output (keep pass/fail counts only)
+- Build logs (keep success/failure only)
+- Intermediate exploration that led to dead ends

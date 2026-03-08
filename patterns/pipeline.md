@@ -135,3 +135,12 @@ If either fails, route feedback to implement and re-run only the failing stage.
 ### 5. Complete
 Check remaining checkboxes, close issue. Report: task, changes, gate status, review verdict, QA result, PR URL.
 ```
+
+## Compaction
+
+Long-running pipelines often trigger context compaction. Instruct your project's CLAUDE.md to preserve pipeline-critical state:
+
+- **Always preserve:** current issue number, pipeline stage, quality gate results (pass/fail), file paths changed, PR number, blocking errors
+- **Always discard:** full file contents (re-readable), verbose test/build output (keep pass/fail only), dead-end exploration
+
+Without compaction guidance, the orchestrator loses track of which stages have run and re-runs the entire pipeline or skips completed verification.
