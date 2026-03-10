@@ -12,7 +12,7 @@ The sitter never implements or reviews code itself. It only observes repo state 
 
 - Project has a pipeline orchestrator (e.g., `/team`) and a GitHub issue backlog
 - User wants hands-off execution: "work through these issues while I'm away"
-- Multiple issues need sequential pipeline runs
+- Multiple issues need sequential or parallel pipeline runs
 
 ## Structure
 
@@ -34,6 +34,40 @@ The sitter creates a pinned GitHub issue labeled `ops` as its communication chan
 **Why an issue instead of CLI output?** The sitter runs via `/loop`, which means the user may not be watching. GitHub issues are persistent, timestamped, and accessible from anywhere.
 
 When stuck, the sitter posts a structured question to the ops issue and continues looping — checking for a reply each cycle before taking new action.
+
+## Merge Authorization
+
+By default, the sitter does NOT merge PRs to main — it waits for user approval. Authorization escalates based on user signals:
+
+1. **No signal** — Post "Ready to merge PR #{N}" on the ops issue, wait for reply
+2. **User merges one PR manually** — Single-PR approval only
+3. **User comments with explicit authorization** (e.g., "auto-merge approved", "keep it up", "merge away") — **Blanket merge authorization** for the rest of the session
+
+This prevents the sitter from blocking on merge approval for multiple cycles when the user has clearly indicated trust. The sitter logs when blanket authorization is detected.
+
+**Learned from practice:** In a 14-hour overnight run, the sitter wasted ~60 minutes (3 cycles) waiting for merge approval on a PR that was clearly ready, despite the user having already merged one PR and commented "keep it up."
+
+## Parallel Pipelines
+
+When multiple open issues have no dependency on each other, spawn concurrent team instances instead of processing sequentially.
+
+**Independence check:** Two issues are independent if they don't reference each other, touch different areas of the codebase, and neither is a prerequisite for the other.
+
+**How to parallelize:**
+- Create separate feature branches for each issue
+- Spawn multiple team invocations using parallel Agent tool calls
+- Track each pipeline independently — one failing doesn't block the other
+- Merge completed PRs as they finish
+
+**Limits:** Max 2 concurrent pipelines to avoid merge conflicts. If unsure about independence, run sequentially.
+
+**Learned from practice:** In a run with 8 issues, several pairs (cart+checkout, polish+testing) could have overlapped. Sequential processing added hours of unnecessary wall-clock time.
+
+## Stale PR Cleanup
+
+If a PR is clearly stale or a duplicate (e.g., created by a different tool, superseded by another PR for the same issue, or abandoned with no activity for 3+ cycles), close it with a comment explaining why. This is the one exception to "never close things manually."
+
+**Learned from practice:** A copilot-generated duplicate PR cluttered the state assessment on every cycle, adding noise to decision-making without any value.
 
 ## Decision Tree
 
@@ -62,8 +96,9 @@ When none of the clean cases match, the sitter uses judgment:
 **Rules for Case D:**
 1. Always log reasoning to the ops issue
 2. Prefer forward progress over perfection
-3. Never force-push, delete unmerged branches, or close issues manually
-4. If truly stuck, post a question to the ops issue and wait for reply
+3. Never force-push or delete unmerged branches. Never close issues manually.
+4. Stale/duplicate PRs may be closed with a comment (see Stale PR Cleanup above)
+5. If truly stuck, post a question to the ops issue and wait for reply
 
 ## Stop Conditions
 
@@ -89,6 +124,24 @@ You are the autonomous pipeline babysitter. You check the state of the project r
 ## Input
 
 The user provides a repo path (defaults to the current working directory). If not provided, use the current project root.
+
+## Merge Authorization
+
+By default, do NOT merge PRs to main — wait for user approval. Authorization escalates:
+
+1. **No signal** — Post "Ready to merge PR #{N}" on the ops issue, wait for reply
+2. **User merges one PR manually** — Single-PR approval only
+3. **User comments with explicit authorization** (e.g., "auto-merge approved", "keep it up") — **Blanket authorization** for the session. Log it on the ops issue.
+
+Check ops issue comments for authorization signals every cycle.
+
+## Parallel Pipelines
+
+When multiple open issues are independent (different features, no prerequisites), spawn up to 2 concurrent `/{TEAM_COMMAND}` instances on separate feature branches. If unsure about independence, run sequentially.
+
+## Stale PR Cleanup
+
+Close clearly stale/duplicate PRs (created by other tools, superseded, or abandoned 3+ cycles) with a comment. Log to ops issue.
 
 ## Step 0: Ops Issue — Communication Channel
 
@@ -153,16 +206,19 @@ Trigger `/{TEAM_COMMAND}` to continue the pipeline from where it left off.
 
 ### Case C: No open PR, no in-progress work
 
-- **Issue found** → Trigger `/{TEAM_COMMAND}` with: "Pick up issue #{N}: {title}"
 - **No issues left** → Output `LOOP_STOP` — pipeline complete
+- **One issue** → Trigger `/{TEAM_COMMAND}` with: "Pick up issue #{N}: {title}"
+- **Multiple independent issues** → Spawn up to 2 concurrent `/{TEAM_COMMAND}` instances (see Parallel Pipelines). If dependent, process the prerequisite first.
 
 ### Case D: Ambiguous or unexpected state
 
 Use judgment. Log reasoning to the ops issue. Prefer forward progress. If truly stuck, post a question and wait for reply.
 
-Rules: never force-push, never delete unmerged branches, never close issues manually.
+Rules: never force-push or delete unmerged branches. Never close issues manually. Stale/duplicate PRs may be closed (see Stale PR Cleanup).
 
 ## Step 3A: Merging an Approved PR
+
+Check merge authorization (see above). If authorized, merge immediately. If not, post to ops issue and wait.
 
 \```bash
 gh pr merge {N} --merge
@@ -200,6 +256,14 @@ Next Expected: {what should happen next}
 \```
 
 If stopping, add `LOOP_STOP` after the status block.
+
+## Recommended Usage
+
+\```
+/loop 5m /{TEAM_COMMAND}-sitter {repo-path}
+\```
+
+Use a 5-minute interval. Longer intervals (10-20m) waste time between completed pipelines. Shorter intervals (1-2m) burn cycles checking unchanged state.
 ```
 
 ## Integration with Ossify
