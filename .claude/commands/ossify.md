@@ -134,6 +134,22 @@ Does the project need persistent memory?
 
 If yes, generate the initial memory structure with sensible defaults.
 
+### Step 6b: Pipeline Sitter (Pipeline systems only)
+
+If a pipeline was chosen in Step 4 (linear chain, parallel then merge, or hub and spoke), offer an autonomous sitter command:
+
+> **Optional: Pipeline Sitter**
+>
+> A sitter command (`/{team-name}-sitter`) monitors your repo and drives the pipeline autonomously — merging approved PRs, triggering the team for next issues, and reporting progress to a pinned GitHub ops issue.
+>
+> Pairs with `/loop` for hands-off execution (e.g., `/loop 5m /{team-name}-sitter`).
+>
+> Requires: GitHub-hosted repo with issues as the work backlog.
+>
+> Add pipeline sitter? (y/n)
+
+If yes, read the team-sitter pattern at `patterns/team-sitter.md` and generate a sitter command tailored to the project's orchestrator command name and pipeline stages.
+
 ### Step 7: Generate
 
 Now generate all files into the target project's `.claude/` directory:
@@ -142,8 +158,9 @@ Now generate all files into the target project's `.claude/` directory:
 2. Generate agent files as `.claude/agents/{name}.md`
 3. Generate orchestrator command as `.claude/commands/{name}.md` (if pipeline chosen)
 4. **For personal assistants**: Generate a main invocation command as `.claude/commands/{assistant-name}.md` — this is the primary entry point (e.g., `/cleo`, `/friday`). Also generate sub-commands (`check-in`, `wrap-up`, `update`, `goals`, `teach`). The main command should route to sub-commands when appropriate and handle everything else directly.
-5. Generate memory files (if chosen)
-6. **Generate or update the project's CLAUDE.md** with pipeline rules (see below)
+5. **If sitter was chosen**: Generate sitter command as `.claude/commands/{name}-sitter.md` using the template from `patterns/team-sitter.md`. Replace `{TEAM_COMMAND}` with the orchestrator command name from step 3.
+6. Generate memory files (if chosen)
+7. **Generate or update the project's CLAUDE.md** with pipeline rules (see below)
 
 #### CLAUDE.md Pipeline Rules (critical)
 

@@ -84,7 +84,8 @@ The pipeline should leave a visible audit trail:
 - PRs created and linked to issues
 - Review and QA verdicts posted as PR comments (`gh pr comment`)
 - Acceptance criteria checkboxes checked on issues (`gh issue edit`)
-- Issues closed on completion (`gh issue close`)
+- **Never merge PRs without explicit user permission.** Agents report results and wait for authorization.
+- Issues auto-close via `Closes #N` in the PR body when the PR is merged
 
 This makes pipeline execution verifiable by anyone looking at the repo.
 

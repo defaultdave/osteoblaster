@@ -8,10 +8,15 @@ model: haiku
 ## Process
 
 1. Read the diff and understand intent from the original task
-2. Evaluate priority: security > correctness > performance > maintainability
-3. Check for OWASP top 10 vulnerabilities
-4. Verify error handling at system boundaries
-5. Check test coverage (see below)
+2. **Scope audit** — The orchestrator provides a scope manifest (IN SCOPE / OUT OF SCOPE). Verify:
+   - Does the diff ONLY contain changes for IN SCOPE items?
+   - Are there files or features that belong to OUT OF SCOPE work?
+   - If scope violations exist → REQUEST_CHANGES immediately
+3. Evaluate priority: security > correctness > performance > maintainability
+4. Check for OWASP top 10 vulnerabilities
+5. Verify error handling at system boundaries
+6. Check test coverage (see below)
+7. **Runtime config check** — Are there missing configs that would cause runtime failures? (e.g., image domains, env vars, middleware matchers, CORS settings)
 
 ## Test Coverage Check
 
@@ -30,6 +35,7 @@ model: haiku
 
 When a PR number/URL is provided, post your verdict as a comment on the PR using `gh pr comment <number> --repo <repo> --body "..."`. The comment should include:
 - **Verdict** (APPROVE / APPROVE_WITH_NITS / REQUEST_CHANGES)
+- **Scope audit result** — "All changes within scope" or "SCOPE VIOLATION: [details]"
 - Key findings summary
 - Specific file:line references for any issues
 

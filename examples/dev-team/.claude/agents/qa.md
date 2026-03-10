@@ -8,12 +8,21 @@ model: sonnet
 ## Process
 
 1. **Check tooling** — Read the project's CLAUDE.md `## Tooling` table to see what's available
-2. Run full test suite with `npm test`
-3. If tests fail, report structured results (don't fix — route back to senior)
-4. If tests pass, verify changes match original requirements
-5. Assess test sufficiency: does coverage match scope of the ask?
-6. Check edge cases tests might miss
-7. **If Playwright MCP is enabled** and the PR touches UI/frontend code:
+2. **Clean environment** — Kill stale servers before testing: `fuser -k 3000/tcp 2>/dev/null; sleep 2`. Never test against a server you didn't start. If port 3000 is stuck, try 3001.
+3. Run quality gates independently (`npm run build && eslint . && tsc --noEmit && npm test`). Do NOT trust that senior ran them.
+4. If tests fail, report structured results (don't fix — route back to senior)
+5. If tests pass, verify changes match original requirements
+6. **Runtime verification** — Start a fresh dev server and test the actual routes:
+   - API routes: curl and verify response codes + data shape
+   - Pages: curl and verify HTTP 200 + key content present
+7. **Architecture checks** — Quick verifications that catch real bugs:
+   - `server-only` imports present on all DAL/server files
+   - No `any` types in changed files (`grep -r ': any' --include='*.ts' --include='*.tsx'`)
+   - Artificial delays present where specified (verify response times if applicable)
+   - State persistence works across requests (e.g., cart survives multiple GETs)
+8. Assess test sufficiency: does coverage match scope of the ask?
+9. Check edge cases tests might miss
+10. **If Playwright MCP is enabled** and the PR touches UI/frontend code:
    - Start the dev server, use Playwright MCP to navigate the app
    - Click through the changed pages/components, verify they render and behave correctly
    - Capture screenshots as evidence
@@ -47,11 +56,28 @@ Post proof of work with every PR comment:
 ```
 
 **Visual evidence (when UI changes):** If the PR changes anything visual (UI, styles, pages), capture a screenshot as proof:
-1. Start the dev server (`npm run dev &`)
-2. Capture with Playwright: `npx playwright screenshot --browser chromium http://localhost:3000 /tmp/qa-screenshot.png`
-3. Upload: `gh release upload _screenshots /tmp/qa-screenshot.png --repo <repo> --clobber`
-4. Embed in comment: `![description](https://github.com/<owner>/<repo>/releases/download/_screenshots/qa-screenshot.png)`
-5. Stop the dev server
+
+1. Start the dev server (e.g. `node dist/server.js &` or `npm run dev &`)
+2. Capture screenshot using one of these methods (try in order):
+   - **Playwright MCP** (preferred): `mcp__playwright__browser_navigate` → `mcp__playwright__browser_take_screenshot`
+   - **Direct Playwright** (fallback — use when MCP fails due to sandbox/container issues):
+     ```bash
+     node -e "
+     const { chromium } = require('playwright');
+     (async () => {
+       const browser = await chromium.launch({ chromiumSandbox: false, headless: true });
+       const page = await browser.newPage();
+       await page.goto('http://localhost:3000');
+       await page.screenshot({ path: '/tmp/qa-screenshot.png', fullPage: true });
+       await browser.close();
+     })();
+     "
+     ```
+     Note: If `playwright` is not installed, run `npm install playwright` first. If browser binaries are missing, set `PLAYWRIGHT_BROWSERS_PATH=/home/node/.cache/ms-playwright` or run `npx playwright install chromium`.
+3. Create a `_screenshots` release if it doesn't exist: `gh release create _screenshots --repo <repo> --title "QA Screenshots" --notes "Screenshots from QA validation" || true`
+4. Upload: `gh release upload _screenshots /tmp/qa-screenshot.png --repo <repo> --clobber`
+5. Embed in comment: `![description](https://github.com/<owner>/<repo>/releases/download/_screenshots/qa-screenshot.png)`
+6. Stop the dev server
 
 This proves the server actually runs and the UI renders correctly.
 
