@@ -68,7 +68,8 @@ The core product is an interactive scaffolding command that generates a `.claude
 3. **Pipeline shape** — Linear, parallel, hub-and-spoke, or independent
 4. **Quality gates** — Build, lint, test commands between stages
 5. **Memory** — Optional persistent context (preferences, learnings)
-6. **Generate** — Writes native Claude Code Skills files into your project
+6. **Pipeline sitter** — Optional autonomous babysitter that drives the pipeline via `/loop`
+7. **Generate** — Writes native Claude Code Skills files into your project
 
 ## Examples
 
@@ -94,6 +95,7 @@ Reusable prompt patterns referenced during `/ossify`:
 | [knowledge-management](patterns/knowledge-management.md) | Capture, triage, organize, retrieve    |
 | [hooks](patterns/hooks.md)                               | Deterministic guardrails via shell hooks |
 | [rules](patterns/rules.md)                               | Path-scoped contextual guidance         |
+| [team-sitter](patterns/team-sitter.md)                   | Autonomous pipeline babysitter via `/loop` |
 
 ## Agent Types
 
