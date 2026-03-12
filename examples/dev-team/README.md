@@ -136,6 +136,8 @@ The benchmark agent measures pipeline quality by running a series of phased task
 
 ## Files
 
+### Claude Code (`.claude/`)
+
 ```
 .claude/
 ├── agents/
@@ -144,7 +146,44 @@ The benchmark agent measures pipeline quality by running a series of phased task
 │   ├── qa.md
 │   ├── tech-pm.md
 │   └── benchmark.md     # Optional — pipeline benchmarking
-└── commands/
-    ├── team.md           # Pipeline orchestrator
-    └── benchmark.md      # Optional — benchmark runner
+├── commands/
+│   ├── team.md           # Pipeline orchestrator
+│   └── benchmark.md      # Optional — benchmark runner
+├── rules/
+│   ├── testing.md        # Path-scoped: test files
+│   ├── api.md            # Path-scoped: API/server code
+│   └── config.md         # Path-scoped: config files
+└── hooks/
+    ├── file-guard.sh     # Blocks writes to .env, lock files, .git
+    └── post-edit-lint.sh # Auto-lints after edits
 ```
+
+### GitHub Copilot (`.github/`)
+
+The same pipeline translates to Copilot's native format:
+
+```
+.github/
+├── copilot-instructions.md              # Repo-wide instructions (like CLAUDE.md)
+├── AGENTS.md                            # Pipeline overview for all agents
+├── agents/
+│   ├── senior.agent.md                  # Implementation agent
+│   ├── review.agent.md                  # Code review agent
+│   ├── qa.agent.md                      # QA/testing agent
+│   └── tech-pm.agent.md                # Planning agent (no code)
+└── instructions/
+    ├── testing.instructions.md          # Path-scoped: test files
+    ├── api.instructions.md              # Path-scoped: API/server code
+    └── config.instructions.md           # Path-scoped: config files
+```
+
+### Mapping: Claude Code to Copilot
+
+| Claude Code | Copilot | Notes |
+|-------------|---------|-------|
+| `CLAUDE.md` | `.github/copilot-instructions.md` + `AGENTS.md` | Copilot reads both; instructions for commands, AGENTS.md for agent-visible rules |
+| `.claude/agents/*.md` | `.github/agents/*.agent.md` | Same YAML frontmatter concept; Copilot uses full model IDs |
+| `.claude/rules/*.md` | `.github/instructions/*.instructions.md` | Claude uses `paths:`, Copilot uses `applyTo:` glob patterns |
+| `.claude/commands/*.md` | No direct equivalent | Copilot agents are invoked via `@agent-name` in issues/PRs |
+| `.claude/hooks/*.sh` | No direct equivalent | Use GitHub Actions for similar CI gates |
+| `.claude/settings.json` | No direct equivalent | Copilot permissions managed at org/repo level |
