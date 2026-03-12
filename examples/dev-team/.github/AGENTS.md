@@ -18,13 +18,14 @@ The pipeline run is complete once both a review verdict and a QA result exist as
 
 ## Agents
 
-| Agent | Purpose | Model |
-|-------|---------|-------|
+| Agent | Purpose | Model (shorthand) |
+|-------|---------|-------------------|
 | `@senior` | Implementation — writes production code and tests | sonnet |
 | `@review` | Code review — audits for bugs, security, scope compliance | haiku |
 | `@qa` | QA — runs tests, runtime verification, posts evidence | sonnet |
 | `@tech-pm` | Planning — triages, decomposes, estimates (no code) | haiku |
 
+> **Note:** The values in the **Model (shorthand)** column are human-friendly labels (`sonnet`, `haiku`). The exact model identifiers used by each agent are defined in the corresponding `.github/agents/*.agent.md` files.
 ## Rules
 
 1. **Scope is law.** Never build beyond the scope manifest. Scope violations trigger REQUEST_CHANGES.
