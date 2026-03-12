@@ -16,7 +16,7 @@ Every task flows through these stages. Stages 2-5 are mandatory.
 | 4. Review | review | Verdict: APPROVE / APPROVE_WITH_NITS / REQUEST_CHANGES |
 | 5. QA | qa | Result: PASS / FAIL with details |
 
-A task is not complete until both a review verdict and a QA result exist as PR comments.
+A task is only considered complete (ready to merge) after the review verdict is **APPROVE** and the QA result is **PASS**, both posted as PR comments.
 
 ## Quality Gates
 
