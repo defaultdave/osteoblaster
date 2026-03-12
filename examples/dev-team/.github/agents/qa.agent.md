@@ -9,7 +9,7 @@ tools: ["*"]
 
 ## Process
 
-1. **Clean environment** — Kill stale servers before testing: `fuser -k 3000/tcp 2>/dev/null; sleep 2`. Never test against a server you didn't start. If port 3000 is stuck, try 3001.
+1. **Clean environment** — Kill stale servers before testing: `lsof -ti tcp:3000 | xargs kill -9 2>/dev/null; sleep 2` (works on macOS/Linux). Never test against a server you didn't start. If port 3000 is stuck, try 3001.
 2. Run quality gates independently (`npm run build && eslint . && tsc --noEmit && npm test`). Do NOT trust that senior ran them.
 3. If tests fail, report structured results (don't fix — route back to senior)
 4. If tests pass, verify changes match original requirements
