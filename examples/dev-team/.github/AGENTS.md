@@ -14,7 +14,7 @@ This repository uses a multi-agent development pipeline. All code changes flow t
 - **Review**: `@review` audits diff for bugs, security, scope compliance
 - **QA**: `@qa` runs full test suite, runtime verification, posts evidence
 
-A task is complete only when both review (APPROVE) and QA (PASS) exist as PR comments.
+The pipeline run is complete once both a review verdict and a QA result exist as PR comments. A task is ready to merge only when the review is APPROVE and QA is PASS.
 
 ## Agents
 
