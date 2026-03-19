@@ -1,0 +1,73 @@
+name: PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  models: read
+
+jobs:
+  review:
+    name: Review
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get diff
+        id: diff
+        run: |
+          git diff origin/${{ github.base_ref }}...HEAD > diff.txt
+          echo "size=$(wc -c < diff.txt)" >> $GITHUB_OUTPUT
+
+      - name: Review with GitHub Models
+        id: review
+        if: steps.diff.outputs.size != '0'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          DIFF=$(cat diff.txt)
+
+          RESPONSE=$(curl -s https://models.inference.ai.azure.com/chat/completions \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg diff "$DIFF" \
+              '{
+                model: "gpt-4o-mini",
+                messages: [
+                  {
+                    role: "system",
+                    content: "You are a code reviewer for Osteoblaster, a scaffolding tool for Claude Code agent systems. Review only what is in the diff. Be concise and direct. Focus on: correctness of agent/pattern structure, clarity of descriptions and trigger conditions, adherence to the design principles (native only, concise prompts, progressive disclosure, examples not templates, domain-agnostic). Flag anything that would confuse someone setting up agents for the first time. Do not summarize what the PR does — just review it."
+                  },
+                  {
+                    role: "user",
+                    content: ("Review this pull request diff:\n\n```diff\n" + $diff + "\n```")
+                  }
+                ],
+                max_tokens: 1024
+              }'
+            )"
+          )
+
+          COMMENT=$(echo "$RESPONSE" | jq -r '.choices[0].message.content')
+          echo "comment<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Post review comment
+        if: steps.diff.outputs.size != '0'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} \
+            --body "**AI Review**
+
+          ${{ steps.review.outputs.comment }}
+
+          ---
+          *Reviewed by [GitHub Models](https://github.com/marketplace/models) using gpt-4o-mini*"
