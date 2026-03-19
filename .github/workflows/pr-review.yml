@@ -13,6 +13,8 @@ jobs:
   review:
     name: Review
     runs-on: ubuntu-latest
+    # Skip fork PRs — GITHUB_TOKEN lacks write permission on pull-requests for forks
+    if: github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,6 +24,8 @@ jobs:
         id: diff
         run: |
           git diff origin/${{ github.base_ref }}...HEAD > diff.txt
+          # Truncate to 20KB to stay within API limits
+          truncate -s 20480 diff.txt
           echo "size=$(wc -c < diff.txt)" >> $GITHUB_OUTPUT
 
       - name: Review with GitHub Models
@@ -30,13 +34,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          DIFF=$(cat diff.txt)
+          set -euo pipefail
 
-          RESPONSE=$(curl -s https://models.inference.ai.azure.com/chat/completions \
+          RESPONSE=$(curl --fail-with-body -s https://models.inference.ai.azure.com/chat/completions \
             -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "Content-Type: application/json" \
             -d "$(jq -n \
-              --arg diff "$DIFF" \
+              --rawfile diff diff.txt \
               '{
                 model: "gpt-4o-mini",
                 messages: [
@@ -54,20 +58,23 @@ jobs:
             )"
           )
 
-          COMMENT=$(echo "$RESPONSE" | jq -r '.choices[0].message.content')
-          echo "comment<<EOF" >> $GITHUB_OUTPUT
-          echo "$COMMENT" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          COMMENT=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // empty')
+          if [ -z "$COMMENT" ]; then
+            echo "No review content returned from API" >&2
+            exit 1
+          fi
+
+          DELIM="EOF_$RANDOM"
+          echo "comment<<$DELIM" >> "$GITHUB_OUTPUT"
+          echo "$COMMENT" >> "$GITHUB_OUTPUT"
+          echo "$DELIM" >> "$GITHUB_OUTPUT"
 
       - name: Post review comment
         if: steps.diff.outputs.size != '0'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr comment ${{ github.event.pull_request.number }} \
-            --body "**AI Review**
+          body=$(printf '**AI Review**\n\n%s\n\n---\n*Reviewed by [GitHub Models](https://github.com/marketplace/models) using gpt-4o-mini*' \
+            "${{ steps.review.outputs.comment }}")
 
-          ${{ steps.review.outputs.comment }}
-
-          ---
-          *Reviewed by [GitHub Models](https://github.com/marketplace/models) using gpt-4o-mini*"
+          gh pr comment ${{ github.event.pull_request.number }} --body "$body"
