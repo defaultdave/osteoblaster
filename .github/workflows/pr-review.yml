@@ -36,7 +36,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          RESPONSE=$(curl --fail-with-body -s https://models.inference.ai.azure.com/chat/completions \
+          RESPONSE=$(curl -s -w "\n%{http_code}" https://models.inference.ai.azure.com/chat/completions \
             -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "Content-Type: application/json" \
             -d "$(jq -n \
@@ -58,10 +58,19 @@ jobs:
             )"
           )
 
-          COMMENT=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // empty')
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "GitHub Models API returned HTTP $HTTP_CODE — skipping review"
+            echo "$BODY"
+            exit 0
+          fi
+
+          COMMENT=$(echo "$BODY" | jq -r '.choices[0].message.content // empty')
           if [ -z "$COMMENT" ]; then
             echo "No review content returned from API" >&2
-            exit 1
+            exit 0
           fi
 
           DELIM="EOF_$RANDOM"
