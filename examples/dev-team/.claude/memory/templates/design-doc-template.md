@@ -8,7 +8,7 @@ Use this template when creating design documents for complex features or new pro
 
 ## Template
 
-```markdown
+````markdown
 # {Feature Name} Design Document
 
 **Component:** {Component or subsystem name}
@@ -141,7 +141,7 @@ ExampleEntity {
 **Design Sign-off:** {author}
 **Date:** {YYYY-MM-DD}
 **Status:** {Ready for implementation | Needs revision}
-```
+````
 
 ---
 
