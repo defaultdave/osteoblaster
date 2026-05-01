@@ -22,22 +22,22 @@ Create and manage design documents (RFCs) for complex features or new projects. 
 
 1. **Determine project context:**
    - Detect project from current working directory or git remote
-   - Load project memory from `memory/projects/{project}/`
-   - If no project memory exists, initialize a new project directory under `memory/projects/{project}/` (including a `designs/` subdirectory) before proceeding
+   - Load project memory from `.claude/memory/projects/{project}/`
+   - If no project memory exists, initialize a new project directory under `.claude/memory/projects/{project}/` (including a `designs/` subdirectory) before proceeding
 
 2. **Gather design inputs:**
    - If `{issue}` provided: fetch issue from GitHub, extract requirements
    - If no issue: ask user for feature name, problem statement, and scope
 
 3. **Create the design doc:**
-   - Use the template from `memory/templates/design-doc-template.md`
+   - Use the template from `.claude/memory/templates/design-doc-template.md`
    - Fill in project context, component architecture, data model
    - Include alternatives considered
    - Define implementation phases
    - Write testing strategy and security considerations
 
 4. **Store the doc:**
-   - Save to `memory/projects/{project}/designs/{issue}-{slug}.md`
+   - Save to `.claude/memory/projects/{project}/designs/{issue}-{slug}.md`
    - If no issue number, use date-based prefix: `{YYYY-MM-DD}-{slug}.md`
 
 5. **Present for review:**
@@ -48,7 +48,7 @@ Create and manage design documents (RFCs) for complex features or new projects. 
 ### `/design list`
 
 1. Detect current project
-2. List all files in `memory/projects/{project}/designs/`
+2. List all files in `.claude/memory/projects/{project}/designs/`
 3. Show each doc's title, status, date, and related issue
 
 ### `/design review {doc}`
@@ -67,7 +67,7 @@ Create and manage design documents (RFCs) for complex features or new projects. 
 
 ## Template
 
-The design doc template lives at `memory/templates/design-doc-template.md`. Key sections:
+The design doc template lives at `.claude/memory/templates/design-doc-template.md`. Key sections:
 
 - **Problem Statement** — What problem, who has it, why it matters
 - **Goals / Non-Goals** — Explicit boundaries
