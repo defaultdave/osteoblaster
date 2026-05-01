@@ -1,4 +1,5 @@
 ---
+name: design
 description: Create design documents for features or projects
 ---
 
