@@ -2,7 +2,7 @@
 
 Use this template when creating design documents for complex features or new projects. Design docs are created by the architect agent and serve as handoff artifacts to the senior agent.
 
-**Storage:** `memory/projects/{project}/designs/{issue}-{slug}.md`
+**Storage:** `.claude/memory/projects/{project}/designs/{issue}-{slug}.md`
 
 ---
 
