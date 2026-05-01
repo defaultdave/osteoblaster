@@ -23,7 +23,7 @@ Create and manage design documents (RFCs) for complex features or new projects. 
 1. **Determine project context:**
    - Detect project from current working directory or git remote
    - Load project memory from `memory/projects/{project}/`
-   - If no project memory exists, suggest running `/project-init` first
+   - If no project memory exists, initialize a new project directory under `memory/projects/{project}/` (including a `designs/` subdirectory) before proceeding
 
 2. **Gather design inputs:**
    - If `{issue}` provided: fetch issue from GitHub, extract requirements
